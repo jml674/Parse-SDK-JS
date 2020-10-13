@@ -27,7 +27,7 @@ export type FullOptions = {
   sessionToken?: string;
   installationId?: string;
 };
-
+//JML
 var XHR = null;
 if (typeof XMLHttpRequest !== 'undefined') {
   XHR = XMLHttpRequest;
@@ -74,6 +74,58 @@ function ajaxIE9(method: string, url: string, data: any) {
 
 const RESTController = {
   ajax(method: string, url: string, data: any, headers?: any) {
+    headers = headers || {};
+    headers['Content-Type'] = 'text/plain'; // Avoid pre-flight
+    if (CoreManager.get('IS_NODE')) {
+      headers['User-Agent'] = 'Parse/' + CoreManager.get('VERSION') +
+        ' (NodeJS ' + process.versions.node + ')';
+    }
+    var dispatch = function(){
+      return new Promise((resolve, reject)=> {
+        fetch(url,{
+          method,
+          headers,
+          body: data,
+        })
+        .then(response => {
+          console.log("Parse: response from fetch",response);
+          if (response.status >= 200 && response.status < 300) {
+            var response;
+            try {
+              return resolve(response.json());
+            } catch (e) {
+              reject(e.toString());
+            }
+          }
+          else if (response.status >= 500 || response.status === 0) { // retry on 5XX or node-xmlhttprequest error
+            if (++attempts < CoreManager.get('REQUEST_ATTEMPT_LIMIT')) {
+              // Exponentially-growing random delay
+              var delay = Math.round(
+                Math.random() * 125 * Math.pow(2, attempts)
+              );
+              setTimeout(dispatch, delay);
+            } else if (response.status === 0) {
+              reject('Unable to connect to the Parse API');
+            } else {
+              // After the retry limit is reached, fail
+              response.text().then(text => {
+                response.responseText = response.response = text;
+                reject(response)
+              });
+            }
+          }
+          else{
+            response.text().then(text => {
+              response.responseText = response.response = text;
+              reject(response)
+            });
+          }
+        });
+      }); 
+    }
+    return dispatch();
+  },
+  ajax1(method: string, url: string, data: any, headers?: any) {
     if (useXDomainRequest) {
       return ajaxIE9(method, url, data, headers);
     }
