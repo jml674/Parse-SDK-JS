@@ -18,6 +18,9 @@ var DEV_HEADER = (
   ' *\n' +
   ' * The source tree of this library can be found at\n' +
   ' *   https://github.com/ParsePlatform/Parse-SDK-JS\n' +
+  ' */\n'+
+  '/**\n' +
+  ' * Modified by JML October 2020 \n' +
   ' */\n'
 );
 
@@ -33,6 +36,9 @@ var FULL_HEADER = (
   ' * This source code is licensed under the BSD-style license found in the\n' +
   ' * LICENSE file in the root directory of this source tree. An additional grant\n' +
   ' * of patent rights can be found in the PATENTS file in the same directory.\n' +
+  ' */\n'+
+  '/**\n' +
+  ' * Modified by JML October 2020 \n' +
   ' */\n'
 );
 
